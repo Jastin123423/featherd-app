@@ -49,10 +49,31 @@ The native Android app reproduces the exact aesthetic of Feathered:
 
 ## 🛠️ Building & Running
 
-### Android Studio / Gradle:
+### ⚡ Automated GitHub Actions (Build APK & AAB in the Cloud):
+The repository includes a production-grade GitHub Actions workflow at `.github/workflows/android-build.yml`.
+
+1. **Push your code to GitHub** on `main` or push a version tag like `v1.0.0`.
+2. Go to your GitHub repository and open the **Actions** tab.
+3. Select **Android Build & Release (APK & AAB)**.
+4. Click **Run workflow** (or let it run automatically on commit/push).
+5. Once completed, scroll to the **Artifacts** section to download:
+   - **`Feathered-Debug-APK`**: Ready to install directly on any Android device.
+   - **`Feathered-Release-APK`**: Production release APK.
+   - **`Feathered-GooglePlay-AAB`**: Google Play Store submission package.
+
+### 🔑 Release Signing Secrets (Optional in GitHub Settings → Secrets):
+- `ANDROID_KEYSTORE_BASE64`: Base64 string of your `.keystore` / `.jks` file.
+- `ANDROID_KEYSTORE_PASSWORD`: Keystore password.
+- `ANDROID_KEY_ALIAS`: Key alias.
+- `ANDROID_KEY_PASSWORD`: Key password.
+
+*(If no secrets are supplied, the workflow automatically generates functional debug-signed APKs.)*
+
+### Android Studio / Local Gradle:
 Open the `/android` directory in **Android Studio** or build via command line:
 ```bash
-gradle assembleDebug
+cd android
+./gradlew assembleDebug
 ```
 The output APK will be generated at:
 `android/app/build/outputs/apk/debug/UNERA-debug-1.0.0.apk`
