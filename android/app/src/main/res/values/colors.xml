@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand Primary & Accent -->
+    <color name="colorPrimary">#1877F2</color>
+    <color name="colorPrimaryDark">#050B18</color>
+    <color name="colorAccent">#F97316</color>
+
+    <!-- Feathered Dark Navy Theme Palette -->
+    <color name="navy_950">#020617</color>
+    <color name="navy_900">#050B18</color>
+    <color name="navy_850">#0B1120</color>
+    <color name="navy_800">#0F172A</color>
+    <color name="navy_750">#141E33</color>
+    <color name="navy_700">#1E293B</color>
+    <color name="navy_600">#334155</color>
+
+    <!-- Vibrant Carrot Accent Palette -->
+    <color name="carrot_500">#F97316</color>
+    <color name="carrot_600">#EA580C</color>
+    <color name="carrot_400">#FB923C</color>
+
+    <!-- Text & Surface Colors -->
+    <color name="windowBackground">#050B18</color>
+    <color name="surface_card">#0F172A</color>
+    <color name="surface_card_secondary">#141E33</color>
+    <color name="border_subtle">#1E293B</color>
+    <color name="text_primary">#F8FAFC</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="text_muted">#64748B</color>
+
+    <!-- Interactive Elements -->
+    <color name="like_red">#EF4444</color>
+    <color name="share_green">#10B981</color>
+    <color name="verified_blue">#38BDF8</color>
+    <color name="ic_launcher_background">#050B18</color>
+    <color name="transparent">#00000000</color>
+    <color name="overlay_dark">#B3050B18</color>
+    <color name="white">#FFFFFF</color>
+</resources>

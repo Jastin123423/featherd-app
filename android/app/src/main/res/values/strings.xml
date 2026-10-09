@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Feathered</string>
+    <string name="title_activity_main">Feathered</string>
+    <string name="package_name">com.unera.social</string>
+    <string name="custom_url_scheme">com.unera.social</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_feed">Home</string>
+    <string name="nav_reels">Reels</string>
+    <string name="nav_marketplace">Shop</string>
+    <string name="nav_events">Events</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Feed & Interactions -->
+    <string name="whats_on_your_mind">What\'s on your mind?</string>
+    <string name="create_post">Create Post</string>
+    <string name="post_action">Post</string>
+    <string name="cancel">Cancel</string>
+    <string name="share">Share</string>
+    <string name="comment">Comment</string>
+    <string name="like">Like</string>
+    <string name="comments">Comments</string>
+    <string name="write_a_comment">Write a comment…</string>
+    <string name="send">Send</string>
+
+    <!-- Marketplace & Events -->
+    <string name="search_marketplace">Search marketplace…</string>
+    <string name="all_categories">All Categories</string>
+    <string name="contact_seller">Contact Seller</string>
+    <string name="upcoming_events">Upcoming Events</string>
+    <string name="interested">Interested</string>
+    <string name="going">Going</string>
+
+    <!-- Profile -->
+    <string name="edit_profile">Edit Profile</string>
+    <string name="posts_count">Posts</string>
+    <string name="followers_count">Followers</string>
+    <string name="following_count">Following</string>
+</resources>
