@@ -7,63 +7,160 @@
     android:background="@color/windowBackground"
     tools:context=".MainActivity">
 
+    <!-- Top App Bar -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/navy_900"
-        app:elevation="2dp">
+        app:elevation="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="16dp">
+            android:paddingHorizontal="12dp">
 
-            <!-- Brand Logo & Name -->
-            <TextView
-                android:id="@+id/tv_brand_logo"
+            <!-- LEFT: Feathered Brand Button (Logo + Name) -->
+            <LinearLayout
+                android:id="@+id/btn_brand_home"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:fontFamily="sans-serif-black"
-                android:text="Feathered"
-                android:textColor="@color/text_primary"
-                android:textSize="22sp" />
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <!-- Action Icons -->
-            <ImageView
+                <FrameLayout
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/bg_card"
+                    android:padding="6dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Feathered Logo"
+                        android:src="@drawable/ic_feather_logo" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="Feathered"
+                    android:textColor="@color/text_primary"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <!-- RIGHT: Actions -->
+            <!-- 1. MarketPoint circular button -->
+            <FrameLayout
+                android:id="@+id/btn_header_marketplace"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_marginStart="4dp"
+                android:background="@drawable/bg_header_circle_btn"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="MarketPoint"
+                    android:src="@drawable/ic_store"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:id="@+id/badge_header_market"
+                    android:layout_width="wrap_content"
+                    android:layout_height="16dp"
+                    android:layout_gravity="top|end"
+                    android:background="@drawable/bg_badge_orange"
+                    android:gravity="center"
+                    android:minWidth="16dp"
+                    android:paddingHorizontal="4dp"
+                    android:text="3"
+                    android:textColor="@color/white"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <!-- 2. Search circular button -->
+            <FrameLayout
                 android:id="@+id/btn_header_search"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Search"
-                android:padding="8dp"
-                android:src="@drawable/ic_search"
-                app:tint="@color/text_primary" />
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_header_circle_btn"
+                android:clickable="true"
+                android:focusable="true">
 
-            <ImageView
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Search"
+                    android:src="@drawable/ic_search"
+                    app:tint="@color/text_primary" />
+            </FrameLayout>
+
+            <!-- 3. Notification circular button with Orange Badge -->
+            <FrameLayout
                 android:id="@+id/btn_header_notifications"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="4dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Notifications"
-                android:padding="8dp"
-                android:src="@drawable/ic_bell"
-                app:tint="@color/text_primary" />
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_header_circle_btn"
+                android:clickable="true"
+                android:focusable="true">
 
-            <ImageView
-                android:id="@+id/btn_header_messages"
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Notifications"
+                    android:src="@drawable/ic_bell"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:id="@+id/badge_header_notifs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="16dp"
+                    android:layout_gravity="top|end"
+                    android:background="@drawable/bg_badge_orange"
+                    android:gravity="center"
+                    android:minWidth="16dp"
+                    android:paddingHorizontal="4dp"
+                    android:text="5"
+                    android:textColor="@color/white"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <!-- 4. Profile Avatar button -->
+            <FrameLayout
+                android:id="@+id/btn_header_profile"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginStart="4dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Messages"
-                android:padding="8dp"
-                android:src="@drawable/ic_message"
-                app:tint="@color/text_primary" />
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_story_ring"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="2dp">
+
+                <ImageView
+                    android:id="@+id/iv_header_avatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="Profile"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_profile" />
+            </FrameLayout>
+
         </LinearLayout>
 
         <View
@@ -72,25 +169,254 @@
             android:background="@color/border_subtle" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Main Content Frame for Native Tabs -->
+    <!-- Main Content Fragment Container -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="56dp"
+        android:layout_marginBottom="66dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-    <!-- Bottom Navigation Bar -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
+    <!-- Custom Bottom Navigation Bar matching Layout.tsx exactly -->
+    <LinearLayout
+        android:id="@+id/custom_bottom_navigation"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="66dp"
         android:layout_gravity="bottom"
         android:background="@color/navy_900"
-        app:elevation="8dp"
-        app:itemIconTint="@color/carrot_500"
-        app:itemTextColor="@color/carrot_500"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/bottom_nav_menu" />
+        android:elevation="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- 1. Home -->
+        <LinearLayout
+            android:id="@+id/nav_btn_home"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/iv_nav_home"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Home"
+                android:src="@drawable/ic_grid"
+                app:tint="@color/colorPrimary" />
+
+            <TextView
+                android:id="@+id/tv_nav_home"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="sans-serif-bold"
+                android:text="Home"
+                android:textColor="@color/colorPrimary"
+                android:textSize="11sp" />
+
+            <View
+                android:id="@+id/dot_nav_home"
+                android:layout_width="6dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="1dp"
+                android:background="@color/colorPrimary" />
+        </LinearLayout>
+
+        <!-- 2. MarketPoint -->
+        <LinearLayout
+            android:id="@+id/nav_btn_market"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/iv_nav_market"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="MarketPoint"
+                    android:src="@drawable/ic_store"
+                    app:tint="@color/text_secondary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="14dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginEnd="-6dp"
+                    android:layout_marginTop="-4dp"
+                    android:background="@drawable/bg_badge_orange"
+                    android:gravity="center"
+                    android:minWidth="14dp"
+                    android:paddingHorizontal="3dp"
+                    android:text="3"
+                    android:textColor="@color/white"
+                    android:textSize="8sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/tv_nav_market"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="MarketPoint"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
+
+            <View
+                android:id="@+id/dot_nav_market"
+                android:layout_width="6dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="1dp"
+                android:background="@color/colorPrimary"
+                android:visibility="invisible" />
+        </LinearLayout>
+
+        <!-- 3. CENTRAL ELEVATED POST BUTTON -->
+        <LinearLayout
+            android:id="@+id/nav_btn_post"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="-14dp"
+                android:background="@drawable/bg_post_floating_btn"
+                android:clickable="true"
+                android:elevation="6dp"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Create Post"
+                    android:src="@drawable/ic_plus"
+                    app:tint="@color/white" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="sans-serif-black"
+                android:text="POST"
+                android:textColor="@color/colorPrimary"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 4. Message -->
+        <LinearLayout
+            android:id="@+id/nav_btn_message"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/iv_nav_message"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="Message"
+                    android:src="@drawable/ic_chat_dots"
+                    app:tint="@color/text_secondary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="14dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginEnd="-6dp"
+                    android:layout_marginTop="-4dp"
+                    android:background="@drawable/bg_badge_orange"
+                    android:gravity="center"
+                    android:minWidth="14dp"
+                    android:paddingHorizontal="3dp"
+                    android:text="2"
+                    android:textColor="@color/white"
+                    android:textSize="8sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/tv_nav_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Message"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
+
+            <View
+                android:id="@+id/dot_nav_message"
+                android:layout_width="6dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="1dp"
+                android:background="@color/colorPrimary"
+                android:visibility="invisible" />
+        </LinearLayout>
+
+        <!-- 5. Menu -->
+        <LinearLayout
+            android:id="@+id/nav_btn_menu"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/iv_nav_menu"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Menu"
+                android:src="@drawable/ic_menu_bars"
+                app:tint="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/tv_nav_menu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Menu"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
+
+            <View
+                android:id="@+id/dot_nav_menu"
+                android:layout_width="6dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="1dp"
+                android:background="@color/colorPrimary"
+                android:visibility="invisible" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

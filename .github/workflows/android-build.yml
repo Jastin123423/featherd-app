@@ -46,20 +46,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 🟢 Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: 📦 Install Node Dependencies
-        run: npm install --legacy-peer-deps --no-audit --no-fund
-
-      - name: 🔨 Build Web Application
-        run: npm run build
-
-      - name: 📲 Sync Assets to Native Android
-        run: npx cap copy android || true
-
       - name: ☕ Setup Java 21 (Temurin)
         uses: actions/setup-java@v4
         with:
