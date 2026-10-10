@@ -82,9 +82,10 @@ public class FeedFragment extends Fragment implements PostAdapter.OnCommentClick
         ApiClient.getInstance().fetchStories(new ApiClient.ApiCallback<List<Story>>() {
             @Override
             public void onSuccess(List<Story> stories) {
+                if (!isAdded() || getContext() == null) return;
                 storiesList.clear();
                 storiesList.addAll(stories);
-                storyAdapter.notifyDataSetChanged();
+                if (storyAdapter != null) storyAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -95,17 +96,19 @@ public class FeedFragment extends Fragment implements PostAdapter.OnCommentClick
         ApiClient.getInstance().fetchFeed(new ApiClient.ApiCallback<List<Post>>() {
             @Override
             public void onSuccess(List<Post> posts) {
-                pbLoading.setVisibility(View.GONE);
-                swipeRefresh.setRefreshing(false);
+                if (!isAdded() || getContext() == null) return;
+                if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+                if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 postsList.clear();
                 postsList.addAll(posts);
-                postAdapter.notifyDataSetChanged();
+                if (postAdapter != null) postAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onError(Exception error) {
-                pbLoading.setVisibility(View.GONE);
-                swipeRefresh.setRefreshing(false);
+                if (!isAdded() || getContext() == null) return;
+                if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+                if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
             }
         });
     }

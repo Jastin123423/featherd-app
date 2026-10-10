@@ -84,21 +84,24 @@ public class MarketplaceFragment extends Fragment {
     }
 
     private void loadProducts() {
-        pbLoading.setVisibility(View.VISIBLE);
+        if (pbLoading != null) pbLoading.setVisibility(View.VISIBLE);
         ApiClient.getInstance().fetchProducts(new ApiClient.ApiCallback<List<Product>>() {
             @Override
             public void onSuccess(List<Product> products) {
-                pbLoading.setVisibility(View.GONE);
-                swipeRefresh.setRefreshing(false);
+                if (!isAdded() || getContext() == null) return;
+                if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+                if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 allProducts.clear();
                 allProducts.addAll(products);
-                filter(etSearch.getText().toString());
+                String currentSearch = etSearch != null ? etSearch.getText().toString() : "";
+                filter(currentSearch);
             }
 
             @Override
             public void onError(Exception error) {
-                pbLoading.setVisibility(View.GONE);
-                swipeRefresh.setRefreshing(false);
+                if (!isAdded() || getContext() == null) return;
+                if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+                if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
             }
         });
     }

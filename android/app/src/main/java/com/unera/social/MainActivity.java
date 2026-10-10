@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
         try {
             setContentView(R.layout.activity_main);
@@ -54,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
                 switchTab(Tab.HOME);
             }
         } catch (Exception e) {
-            android.util.Log.e("MainActivity", "Safe startup error: ", e);
+            android.util.Log.e("MainActivity", "Safe startup initialization: ", e);
         }
     }
 
@@ -62,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         Window window = getWindow();
         if (window == null) return;
         try {
-            int darkNavy = Color.parseColor("#0B1120");
+            int darkNavy = Color.parseColor("#050B18");
             window.setStatusBarColor(darkNavy);
             window.setNavigationBarColor(darkNavy);
 
@@ -143,35 +142,35 @@ public class MainActivity extends AppCompatActivity {
         switch (tab) {
             case MARKET:
                 fragment = new MarketplaceFragment();
-                highlightNav(Tab.MARKET);
                 break;
             case MESSAGE:
                 fragment = new MessagesFragment();
-                highlightNav(Tab.MESSAGE);
                 break;
             case PROFILE:
                 fragment = new ProfileFragment();
-                highlightNav(Tab.HOME); // keep home tab unselected
                 break;
             case EVENTS:
                 fragment = new EventsFragment();
-                highlightNav(Tab.HOME);
                 break;
             case REELS:
                 fragment = new ReelsFragment();
-                highlightNav(Tab.HOME);
                 break;
             case HOME:
             default:
                 fragment = new FeedFragment();
-                highlightNav(Tab.HOME);
                 break;
         }
 
-        FragmentManager fm = getSupportFragmentManager();
-        fm.beginTransaction()
-                .replace(R.id.fragment_container, fragment)
-                .commit();
+        highlightNav(tab);
+
+        try {
+            FragmentManager fm = getSupportFragmentManager();
+            fm.beginTransaction()
+                    .replace(R.id.fragment_container, fragment)
+                    .commitAllowingStateLoss();
+        } catch (Exception e) {
+            android.util.Log.e("MainActivity", "Error switching tab: ", e);
+        }
     }
 
     private void highlightNav(Tab tab) {
@@ -179,24 +178,24 @@ public class MainActivity extends AppCompatActivity {
         int inactiveColor = ContextCompat.getColor(this, R.color.text_secondary);
 
         // Home
-        ivNavHome.setColorFilter(tab == Tab.HOME ? activeColor : inactiveColor);
-        tvNavHome.setTextColor(tab == Tab.HOME ? activeColor : inactiveColor);
-        dotNavHome.setVisibility(tab == Tab.HOME ? View.VISIBLE : View.INVISIBLE);
+        if (ivNavHome != null) ivNavHome.setColorFilter(tab == Tab.HOME ? activeColor : inactiveColor);
+        if (tvNavHome != null) tvNavHome.setTextColor(tab == Tab.HOME ? activeColor : inactiveColor);
+        if (dotNavHome != null) dotNavHome.setVisibility(tab == Tab.HOME ? View.VISIBLE : View.INVISIBLE);
 
         // Market
-        ivNavMarket.setColorFilter(tab == Tab.MARKET ? activeColor : inactiveColor);
-        tvNavMarket.setTextColor(tab == Tab.MARKET ? activeColor : inactiveColor);
-        dotNavMarket.setVisibility(tab == Tab.MARKET ? View.VISIBLE : View.INVISIBLE);
+        if (ivNavMarket != null) ivNavMarket.setColorFilter(tab == Tab.MARKET ? activeColor : inactiveColor);
+        if (tvNavMarket != null) tvNavMarket.setTextColor(tab == Tab.MARKET ? activeColor : inactiveColor);
+        if (dotNavMarket != null) dotNavMarket.setVisibility(tab == Tab.MARKET ? View.VISIBLE : View.INVISIBLE);
 
         // Message
-        ivNavMessage.setColorFilter(tab == Tab.MESSAGE ? activeColor : inactiveColor);
-        tvNavMessage.setTextColor(tab == Tab.MESSAGE ? activeColor : inactiveColor);
-        dotNavMessage.setVisibility(tab == Tab.MESSAGE ? View.VISIBLE : View.INVISIBLE);
+        if (ivNavMessage != null) ivNavMessage.setColorFilter(tab == Tab.MESSAGE ? activeColor : inactiveColor);
+        if (tvNavMessage != null) tvNavMessage.setTextColor(tab == Tab.MESSAGE ? activeColor : inactiveColor);
+        if (dotNavMessage != null) dotNavMessage.setVisibility(tab == Tab.MESSAGE ? View.VISIBLE : View.INVISIBLE);
 
         // Menu
-        ivNavMenu.setColorFilter(inactiveColor);
-        tvNavMenu.setTextColor(inactiveColor);
-        dotNavMenu.setVisibility(View.INVISIBLE);
+        if (ivNavMenu != null) ivNavMenu.setColorFilter(inactiveColor);
+        if (tvNavMenu != null) tvNavMenu.setTextColor(inactiveColor);
+        if (dotNavMenu != null) dotNavMenu.setVisibility(View.INVISIBLE);
     }
 
     private void showCreatePostModal() {
@@ -208,19 +207,22 @@ public class MainActivity extends AppCompatActivity {
         }
 
         EditText etContent = dialog.findViewById(R.id.et_new_post_content);
-        EditText etImageUrl = dialog.findViewById(R.id.et_new_post_image_url);
+        View btnCancel = dialog.findViewById(R.id.btn_cancel_post);
+        View btnSubmit = dialog.findViewById(R.id.btn_submit_post);
 
-        dialog.findViewById(R.id.btn_cancel_post).setOnClickListener(v -> dialog.dismiss());
-        dialog.findViewById(R.id.btn_submit_post).setOnClickListener(v -> {
-            String content = etContent.getText().toString().trim();
-            if (content.isEmpty()) {
-                Toast.makeText(this, "Please write something to post", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            Toast.makeText(this, "Post published successfully!", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-            switchTab(Tab.HOME);
-        });
+        if (btnCancel != null) btnCancel.setOnClickListener(v -> dialog.dismiss());
+        if (btnSubmit != null) {
+            btnSubmit.setOnClickListener(v -> {
+                String content = etContent != null ? etContent.getText().toString().trim() : "";
+                if (content.isEmpty()) {
+                    Toast.makeText(this, "Please write something to post", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Toast.makeText(this, "Post published successfully!", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+                switchTab(Tab.HOME);
+            });
+        }
 
         dialog.show();
     }
@@ -229,47 +231,72 @@ public class MainActivity extends AppCompatActivity {
         BottomSheetDialog menuSheet = new BottomSheetDialog(this);
         menuSheet.setContentView(R.layout.bottom_sheet_menu);
 
-        menuSheet.findViewById(R.id.btn_close_menu).setOnClickListener(v -> menuSheet.dismiss());
+        View btnClose = menuSheet.findViewById(R.id.btn_close_menu);
+        if (btnClose != null) btnClose.setOnClickListener(v -> menuSheet.dismiss());
 
-        menuSheet.findViewById(R.id.menu_profile_card).setOnClickListener(v -> {
-            menuSheet.dismiss();
-            switchTab(Tab.PROFILE);
-        });
+        View itemProfile = menuSheet.findViewById(R.id.menu_profile_card);
+        if (itemProfile != null) {
+            itemProfile.setOnClickListener(v -> {
+                menuSheet.dismiss();
+                switchTab(Tab.PROFILE);
+            });
+        }
 
-        menuSheet.findViewById(R.id.menu_item_marketpoint).setOnClickListener(v -> {
-            menuSheet.dismiss();
-            switchTab(Tab.MARKET);
-        });
+        View itemMarket = menuSheet.findViewById(R.id.menu_item_marketpoint);
+        if (itemMarket != null) {
+            itemMarket.setOnClickListener(v -> {
+                menuSheet.dismiss();
+                switchTab(Tab.MARKET);
+            });
+        }
 
-        menuSheet.findViewById(R.id.menu_item_events).setOnClickListener(v -> {
-            menuSheet.dismiss();
-            switchTab(Tab.EVENTS);
-        });
+        View itemEvents = menuSheet.findViewById(R.id.menu_item_events);
+        if (itemEvents != null) {
+            itemEvents.setOnClickListener(v -> {
+                menuSheet.dismiss();
+                switchTab(Tab.EVENTS);
+            });
+        }
 
-        menuSheet.findViewById(R.id.menu_item_videos).setOnClickListener(v -> {
-            menuSheet.dismiss();
-            switchTab(Tab.REELS);
-        });
+        View itemVideos = menuSheet.findViewById(R.id.menu_item_videos);
+        if (itemVideos != null) {
+            itemVideos.setOnClickListener(v -> {
+                menuSheet.dismiss();
+                switchTab(Tab.REELS);
+            });
+        }
 
-        menuSheet.findViewById(R.id.menu_item_saved).setOnClickListener(v -> {
-            menuSheet.dismiss();
-            Toast.makeText(this, "Saved Posts", Toast.LENGTH_SHORT).show();
-        });
+        View itemSaved = menuSheet.findViewById(R.id.menu_item_saved);
+        if (itemSaved != null) {
+            itemSaved.setOnClickListener(v -> {
+                menuSheet.dismiss();
+                Toast.makeText(this, "Saved Posts", Toast.LENGTH_SHORT).show();
+            });
+        }
 
-        menuSheet.findViewById(R.id.menu_link_privacy).setOnClickListener(v -> {
-            menuSheet.dismiss();
-            Toast.makeText(this, "Privacy Policy: Feathered adheres to industry-leading data protection.", Toast.LENGTH_LONG).show();
-        });
+        View linkPrivacy = menuSheet.findViewById(R.id.menu_link_privacy);
+        if (linkPrivacy != null) {
+            linkPrivacy.setOnClickListener(v -> {
+                menuSheet.dismiss();
+                Toast.makeText(this, "Privacy Policy: Feathered adheres to industry-leading data protection.", Toast.LENGTH_LONG).show();
+            });
+        }
 
-        menuSheet.findViewById(R.id.menu_link_terms).setOnClickListener(v -> {
-            menuSheet.dismiss();
-            Toast.makeText(this, "Terms of Service: Connect, Create, Move with Feathered Social.", Toast.LENGTH_LONG).show();
-        });
+        View linkTerms = menuSheet.findViewById(R.id.menu_link_terms);
+        if (linkTerms != null) {
+            linkTerms.setOnClickListener(v -> {
+                menuSheet.dismiss();
+                Toast.makeText(this, "Terms of Service: Connect, Create, Move with Feathered Social.", Toast.LENGTH_LONG).show();
+            });
+        }
 
-        menuSheet.findViewById(R.id.menu_link_logout).setOnClickListener(v -> {
-            menuSheet.dismiss();
-            Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
-        });
+        View linkLogout = menuSheet.findViewById(R.id.menu_link_logout);
+        if (linkLogout != null) {
+            linkLogout.setOnClickListener(v -> {
+                menuSheet.dismiss();
+                Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+            });
+        }
 
         menuSheet.show();
     }
@@ -278,7 +305,8 @@ public class MainActivity extends AppCompatActivity {
         Dialog searchDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         searchDialog.setContentView(R.layout.dialog_search_overlay);
 
-        searchDialog.findViewById(R.id.btn_close_search).setOnClickListener(v -> searchDialog.dismiss());
+        View btnClose = searchDialog.findViewById(R.id.btn_close_search);
+        if (btnClose != null) btnClose.setOnClickListener(v -> searchDialog.dismiss());
         searchDialog.show();
     }
 

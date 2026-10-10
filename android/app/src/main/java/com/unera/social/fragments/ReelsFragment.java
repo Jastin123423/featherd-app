@@ -48,19 +48,21 @@ public class ReelsFragment extends Fragment {
     }
 
     private void loadReels() {
-        pbLoading.setVisibility(View.VISIBLE);
+        if (pbLoading != null) pbLoading.setVisibility(View.VISIBLE);
         ApiClient.getInstance().fetchReels(new ApiClient.ApiCallback<List<Reel>>() {
             @Override
             public void onSuccess(List<Reel> reels) {
-                pbLoading.setVisibility(View.GONE);
+                if (!isAdded() || getContext() == null) return;
+                if (pbLoading != null) pbLoading.setVisibility(View.GONE);
                 reelsList.clear();
                 reelsList.addAll(reels);
-                reelsAdapter.notifyDataSetChanged();
+                if (reelsAdapter != null) reelsAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onError(Exception error) {
-                pbLoading.setVisibility(View.GONE);
+                if (!isAdded() || getContext() == null) return;
+                if (pbLoading != null) pbLoading.setVisibility(View.GONE);
             }
         });
     }

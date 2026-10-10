@@ -70,11 +70,12 @@ public class ProfileFragment extends Fragment implements PostAdapter.OnCommentCl
         ApiClient.getInstance().fetchFeed(new ApiClient.ApiCallback<List<Post>>() {
             @Override
             public void onSuccess(List<Post> posts) {
+                if (!isAdded() || getContext() == null) return;
                 userPosts.clear();
                 if (!posts.isEmpty()) {
                     userPosts.add(posts.get(0));
                 }
-                adapter.notifyDataSetChanged();
+                if (adapter != null) adapter.notifyDataSetChanged();
             }
 
             @Override

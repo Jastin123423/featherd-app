@@ -20,7 +20,6 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:background">@color/windowBackground</item>
         <item name="android:windowBackground">@color/windowBackground</item>
         <item name="android:statusBarColor">@color/colorPrimaryDark</item>
         <item name="android:navigationBarColor">@color/colorPrimaryDark</item>
@@ -29,9 +28,8 @@
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 
-    <!-- Launch theme inheriting safely from MaterialComponents to prevent crash -->
+    <!-- Launch theme inheriting safely from MaterialComponents without crash -->
     <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
-        <item name="android:background">@color/windowBackground</item>
         <item name="android:windowBackground">@color/windowBackground</item>
     </style>
 </resources>

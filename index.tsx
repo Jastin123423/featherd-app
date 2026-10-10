@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
@@ -10,6 +10,57 @@ import { initAndroidBridge, isNativeApp } from './utils/androidBridge';
 
 // Initialize native bridge features when on Android
 initAndroidBridge();
+
+interface ErrorBoundaryProps {
+  children: any;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class RootErrorBoundary extends (React.Component as any) {
+  state: ErrorBoundaryState = { hasError: false, error: null };
+
+  constructor(props: any) {
+    super(props);
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error('Feathered Root Caught Error:', error, errorInfo);
+  }
+
+  render() {
+    if ((this.state as ErrorBoundaryState).hasError) {
+      return (
+        <div className="min-h-screen bg-[#050B18] text-[#F8FAFC] flex flex-col items-center justify-center p-6 text-center select-none font-sans">
+          <div className="w-16 h-16 rounded-2xl bg-[#0F172A] border border-[#1E293B] flex items-center justify-center mb-6 shadow-xl">
+            <span className="text-2xl text-[#F97316]">✦</span>
+          </div>
+          <h1 className="text-2xl font-bold mb-2">Feathered</h1>
+          <p className="text-[#94A3B8] max-w-md text-sm mb-6">
+            Something temporarily went wrong while rendering this screen.
+          </p>
+          <button
+            onClick={() => {
+              (this as any).setState({ hasError: false, error: null });
+              window.location.href = '/';
+            }}
+            className="px-6 py-3 bg-[#1877F2] hover:bg-[#166FE5] active:scale-95 text-white font-semibold rounded-xl transition-all shadow-lg"
+          >
+            Return to Feed
+          </button>
+        </div>
+      );
+    }
+    return (this.props as any).children;
+  }
+}
 
 const rootElement =
   document.getElementById('root');
@@ -26,11 +77,13 @@ const root =
 
 root.render(
   <React.StrictMode>
-    <BrowserRouter>  {/* ✅ Added BrowserRouter */}
-      <LanguageProvider>
-        <AppRouter />  {/* ✅ Changed from App to AppRouter */}
-      </LanguageProvider>
-    </BrowserRouter>
+    <RootErrorBoundary>
+      <BrowserRouter>
+        <LanguageProvider>
+          <AppRouter />
+        </LanguageProvider>
+      </BrowserRouter>
+    </RootErrorBoundary>
   </React.StrictMode>
 );
 

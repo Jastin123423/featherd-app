@@ -48,21 +48,23 @@ public class EventsFragment extends Fragment {
     }
 
     private void loadEvents() {
-        pbLoading.setVisibility(View.VISIBLE);
+        if (pbLoading != null) pbLoading.setVisibility(View.VISIBLE);
         ApiClient.getInstance().fetchEvents(new ApiClient.ApiCallback<List<Event>>() {
             @Override
             public void onSuccess(List<Event> events) {
-                pbLoading.setVisibility(View.GONE);
-                swipeRefresh.setRefreshing(false);
+                if (!isAdded() || getContext() == null) return;
+                if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+                if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 eventsList.clear();
                 eventsList.addAll(events);
-                adapter.notifyDataSetChanged();
+                if (adapter != null) adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onError(Exception error) {
-                pbLoading.setVisibility(View.GONE);
-                swipeRefresh.setRefreshing(false);
+                if (!isAdded() || getContext() == null) return;
+                if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+                if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
             }
         });
     }
