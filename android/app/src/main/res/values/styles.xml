@@ -17,7 +17,11 @@
     <style name="AppTheme.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
         <item name="android:background">@color/windowBackground</item>
+        <item name="android:windowBackground">@color/windowBackground</item>
         <item name="android:statusBarColor">@color/colorPrimaryDark</item>
         <item name="android:navigationBarColor">@color/colorPrimaryDark</item>
         <item name="android:windowLightStatusBar">false</item>
@@ -25,12 +29,9 @@
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 
-    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">@drawable/splash</item>
-        <item name="android:statusBarColor">@color/colorPrimaryDark</item>
-        <item name="android:navigationBarColor">@color/colorPrimaryDark</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
-        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+    <!-- Launch theme inheriting safely from MaterialComponents to prevent crash -->
+    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
+        <item name="android:background">@color/windowBackground</item>
+        <item name="android:windowBackground">@color/windowBackground</item>
     </style>
 </resources>

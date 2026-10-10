@@ -6,27 +6,8 @@ import ScrollRestoration from './components/ScrollRestoration';
 import SplashScreen from './components/SplashScreen';
 
 export default function AppRouter() {
-  const [showSplash, setShowSplash] = useState(() => {
-    // Show splash on initial page load per session
-    try {
-      return !sessionStorage.getItem('feathered_splash_seen');
-    } catch {
-      return true;
-    }
-  });
-
-  const handleSplashFinish = () => {
-    try {
-      sessionStorage.setItem('feathered_splash_seen', 'true');
-    } catch {
-      // ignore
-    }
-    setShowSplash(false);
-  };
-
   return (
     <>
-      {showSplash && <SplashScreen onFinish={handleSplashFinish} duration={1800} />}
       <ScrollRestoration />
       <Routes>
         {/* Main routes */}

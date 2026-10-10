@@ -25,15 +25,19 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        try {
+            setContentView(R.layout.activity_main);
+            configureSystemBars();
+            setupHeaderActions();
+            setupBottomNavigation();
 
-        configureSystemBars();
-        setupHeaderActions();
-        setupBottomNavigation();
-
-        if (savedInstanceState == null) {
-            switchFragment(new FeedFragment());
+            if (savedInstanceState == null) {
+                switchFragment(new FeedFragment());
+            }
+        } catch (Exception e) {
+            android.util.Log.e("MainActivity", "Safe startup initialization error: ", e);
         }
     }
 
