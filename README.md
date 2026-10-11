@@ -1,20 +1,23 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Feathered - Social Network Android Application
 
-# Run and deploy your AI Studio app
+A modern, high-performance Android social application built with Kotlin and Jetpack Compose.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/drive/1ktzYQH3Q7wjgQqtDELttohGcq0BigFcN
+- **Home & Feed:** Stories carousel, rich media feed posts with likes, comments, shares, and post saving.
+- **Post Creation:** Author posts with text, images, and feeling/activity indicators.
+- **Reels & Video Experience:** Fullscreen immersive video reels feed with engagement interactions and audio tracks.
+- **Marketplace:** Product discovery across categories, location filtering, item listing creation, and direct buyer-to-seller messaging.
+- **Events:** Community events discovery, RSVP (Going & Interested), event creation, and venue information.
+- **Direct Messaging & Chat:** Real-time chat conversations with unread indicators, message bubbles, and search.
+- **Profile:** User profile with banner cover, verified status, stats counters (Posts, Followers, Following), bio editing, and saved posts.
+- **Notifications:** Activity center tracking reactions, comments, follows, event invitations, and messages.
 
-## Run Locally
+## Tech Stack
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- **Platform:** Android (minSdk 24, targetSdk 36)
+- **Language:** Kotlin
+- **UI Toolkit:** Jetpack Compose (Material 3)
+- **Architecture:** MVVM (Model-View-ViewModel) with StateFlow
+- **Image Loading:** Coil Compose
+- **Design System:** Custom Feathered Dark Navy theme with Vibrant Carrot accent palette
