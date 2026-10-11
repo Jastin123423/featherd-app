@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.unera.social.data.MarketplaceApiService
 import com.unera.social.data.MockData
 import com.unera.social.model.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,7 +40,32 @@ data class FeatheredUiState(
     val selectedStory: Story? = null,
     val showCreateStoryDialog: Boolean = false,
     val showMenuOverlay: Boolean = false,
-    val selectedUserProfile: User? = null
+    val selectedUserProfile: User? = null,
+    // F-Music state
+    val songs: List<Song> = MockData.songs,
+    val currentAudioTrack: AudioTrack? = null,
+    val isPlayingAudio: Boolean = false,
+    val audioPositionSeconds: Int = 0,
+    val audioDurationSeconds: Int = 180,
+    val isPlayerExpanded: Boolean = false,
+    val isShuffleEnabled: Boolean = false,
+    val isRepeatEnabled: Boolean = false,
+    val audioVolume: Float = 1.0f,
+    val likedTrackKeys: Set<String> = setOf("music:1", "music:4", "music:6"),
+    val myTotalPlays: Long = 33290L,
+    val trackPlays: Map<String, Long> = emptyMap(),
+    val songComments: Map<String, List<SongComment>> = mapOf(
+        "1" to MockData.initialSongComments.filter { it.songId == "1" },
+        "2" to MockData.initialSongComments.filter { it.songId == "2" }
+    ),
+    val downloadedTrackIds: Set<String> = emptySet(),
+    val downloadingTrackId: String? = null,
+    val downloadProgress: Int = 0,
+    val downloadToast: String? = null,
+    val activeDiscussionTrack: AudioTrack? = null,
+    val activeShareTrack: AudioTrack? = null,
+    val songUploadProgress: Int? = null,
+    val songUploadStatus: String? = null
 )
 
 class FeatheredViewModel : ViewModel() {
@@ -309,7 +336,17 @@ class FeatheredViewModel : ViewModel() {
         }
     }
 
-    fun createEvent(title: String, date: String, location: String, description: String, imageUrl: String) {
+    fun createEvent(
+        title: String,
+        date: String,
+        location: String,
+        description: String,
+        imageUrl: String,
+        time: String = "",
+        visibility: String = "worldwide",
+        groupId: Long? = null,
+        groupName: String? = null
+    ) {
         val newEvent = Event(
             id = System.currentTimeMillis(),
             title = title,
@@ -317,7 +354,12 @@ class FeatheredViewModel : ViewModel() {
             location = location,
             description = description,
             imageUrl = imageUrl.ifBlank { "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800" },
-            organizer = _uiState.value.currentUser
+            organizer = _uiState.value.currentUser,
+            time = time,
+            visibility = visibility,
+            groupId = groupId,
+            groupName = groupName,
+            createdAt = "Just now"
         )
         _uiState.update { state ->
             state.copy(
@@ -416,6 +458,44 @@ class FeatheredViewModel : ViewModel() {
         }
     }
 
+    fun markNotificationRead(id: String, isRead: Boolean = true) {
+        _uiState.update { state ->
+            state.copy(
+                notifications = state.notifications.map {
+                    if (it.id == id) it.copy(isRead = isRead) else it
+                }
+            )
+        }
+    }
+
+    fun deleteNotification(id: String) {
+        _uiState.update { state ->
+            state.copy(
+                notifications = state.notifications.filter { it.id != id }
+            )
+        }
+    }
+
+    fun acceptGroupInvite(notificationId: String, groupId: Long?) {
+        _uiState.update { state ->
+            state.copy(
+                notifications = state.notifications.map {
+                    if (it.id == notificationId) it.copy(isRead = true) else it
+                }
+            )
+        }
+    }
+
+    fun declineGroupInvite(notificationId: String, groupId: Long?) {
+        _uiState.update { state ->
+            state.copy(
+                notifications = state.notifications.map {
+                    if (it.id == notificationId) it.copy(isRead = true) else it
+                }
+            )
+        }
+    }
+
     fun updateBio(newBio: String) {
         _uiState.update { state ->
             val updatedUser = state.currentUser.copy(bio = newBio.trim())
@@ -459,6 +539,11 @@ class FeatheredViewModel : ViewModel() {
                 currentScreen = Screen.PROFILE
             )
         }
+    }
+
+    fun openUserProfileById(userId: Long) {
+        val target = _uiState.value.users.find { it.id == userId } ?: _uiState.value.currentUser
+        openUserProfile(target)
     }
 
     fun openCurrentUserProfile() {
@@ -631,5 +716,334 @@ class FeatheredViewModel : ViewModel() {
 
     fun setShowMenuOverlay(show: Boolean) {
         _uiState.update { it.copy(showMenuOverlay = show) }
+    }
+
+    // ==========================================
+    // F-MUSIC AUDIO PLAYER & CATALOG METHODS
+    // ==========================================
+
+    private var playbackJob: Job? = null
+    private var downloadJob: Job? = null
+
+    fun playTrack(track: AudioTrack) {
+        _uiState.update { state ->
+            val trackKey = "music:${track.id}"
+            val currentPlays = state.trackPlays[trackKey] ?: (state.songs.find { it.id == track.id }?.stats?.plays ?: 0L)
+            val isMyTrack = state.currentUser.id == track.uploaderId
+            state.copy(
+                currentAudioTrack = track,
+                isPlayingAudio = true,
+                audioPositionSeconds = 0,
+                audioDurationSeconds = if (track.duration > 0) track.duration else 180,
+                trackPlays = state.trackPlays + (trackKey to (currentPlays + 1L)),
+                myTotalPlays = if (isMyTrack) state.myTotalPlays + 1L else state.myTotalPlays
+            )
+        }
+        startPlaybackTicker()
+    }
+
+    private fun startPlaybackTicker() {
+        playbackJob?.cancel()
+        playbackJob = viewModelScope.launch {
+            while (true) {
+                delay(1000L)
+                val state = _uiState.value
+                if (!state.isPlayingAudio || state.currentAudioTrack == null) break
+
+                if (state.audioPositionSeconds >= state.audioDurationSeconds) {
+                    if (state.isRepeatEnabled) {
+                        _uiState.update { it.copy(audioPositionSeconds = 0) }
+                    } else {
+                        nextTrack()
+                    }
+                } else {
+                    _uiState.update { it.copy(audioPositionSeconds = it.audioPositionSeconds + 1) }
+                }
+            }
+        }
+    }
+
+    fun togglePlayAudio() {
+        val currentlyPlaying = _uiState.value.isPlayingAudio
+        if (currentlyPlaying) {
+            playbackJob?.cancel()
+            _uiState.update { it.copy(isPlayingAudio = false) }
+        } else {
+            if (_uiState.value.currentAudioTrack != null) {
+                _uiState.update { it.copy(isPlayingAudio = true) }
+                startPlaybackTicker()
+            }
+        }
+    }
+
+    fun seekAudio(seconds: Int) {
+        _uiState.update { state ->
+            state.copy(audioPositionSeconds = seconds.coerceIn(0, state.audioDurationSeconds))
+        }
+    }
+
+    fun nextTrack() {
+        val state = _uiState.value
+        val songs = state.songs
+        if (songs.isEmpty()) return
+
+        val currentId = state.currentAudioTrack?.id
+        val currentIndex = songs.indexOfFirst { it.id == currentId }
+
+        val nextIndex = if (state.isShuffleEnabled && songs.size > 1) {
+            var rand = (songs.indices).random()
+            while (rand == currentIndex) {
+                rand = (songs.indices).random()
+            }
+            rand
+        } else {
+            if (currentIndex >= 0) (currentIndex + 1) % songs.size else 0
+        }
+
+        val nextSong = songs[nextIndex]
+        val audioTrack = AudioTrack(
+            id = nextSong.id,
+            title = nextSong.title,
+            artist = nextSong.artist,
+            duration = nextSong.durationSeconds,
+            url = nextSong.audioUrl,
+            uploaderId = nextSong.uploaderId,
+            cover = nextSong.cover,
+            type = "music",
+            isVerified = nextSong.isVerified,
+            likesCount = nextSong.stats.likes
+        )
+        playTrack(audioTrack)
+    }
+
+    fun prevTrack() {
+        val state = _uiState.value
+        if (state.audioPositionSeconds > 3) {
+            _uiState.update { it.copy(audioPositionSeconds = 0) }
+            return
+        }
+
+        val songs = state.songs
+        if (songs.isEmpty()) return
+
+        val currentId = state.currentAudioTrack?.id
+        val currentIndex = songs.indexOfFirst { it.id == currentId }
+        val prevIndex = if (currentIndex > 0) currentIndex - 1 else songs.size - 1
+
+        val prevSong = songs[prevIndex]
+        val audioTrack = AudioTrack(
+            id = prevSong.id,
+            title = prevSong.title,
+            artist = prevSong.artist,
+            duration = prevSong.durationSeconds,
+            url = prevSong.audioUrl,
+            uploaderId = prevSong.uploaderId,
+            cover = prevSong.cover,
+            type = "music",
+            isVerified = prevSong.isVerified,
+            likesCount = prevSong.stats.likes
+        )
+        playTrack(audioTrack)
+    }
+
+    fun stopAudio() {
+        playbackJob?.cancel()
+        _uiState.update { it.copy(isPlayingAudio = false, audioPositionSeconds = 0) }
+    }
+
+    fun closeAudioPlayer() {
+        playbackJob?.cancel()
+        _uiState.update {
+            it.copy(
+                currentAudioTrack = null,
+                isPlayingAudio = false,
+                audioPositionSeconds = 0,
+                isPlayerExpanded = false
+            )
+        }
+    }
+
+    fun setPlayerExpanded(expanded: Boolean) {
+        _uiState.update { it.copy(isPlayerExpanded = expanded) }
+    }
+
+    fun toggleShuffle() {
+        _uiState.update { it.copy(isShuffleEnabled = !it.isShuffleEnabled) }
+    }
+
+    fun toggleRepeat() {
+        _uiState.update { it.copy(isRepeatEnabled = !it.isRepeatEnabled) }
+    }
+
+    fun setAudioVolume(vol: Float) {
+        _uiState.update { it.copy(audioVolume = vol.coerceIn(0f, 1f)) }
+    }
+
+    fun toggleLikeTrack(trackId: String, type: String = "music") {
+        _uiState.update { state ->
+            val key = "$type:$trackId"
+            val isLiked = key in state.likedTrackKeys
+            val updatedKeys = if (isLiked) state.likedTrackKeys - key else state.likedTrackKeys + key
+
+            val updatedSongs = state.songs.map { s ->
+                if (s.id == trackId) {
+                    val newLikes = if (isLiked) maxOf(0L, s.stats.likes - 1) else s.stats.likes + 1
+                    s.copy(stats = s.stats.copy(likes = newLikes))
+                } else s
+            }
+
+            val updatedTrack = state.currentAudioTrack?.let { curr ->
+                if (curr.id == trackId) {
+                    curr.copy(likesCount = if (isLiked) maxOf(0L, curr.likesCount - 1) else curr.likesCount + 1)
+                } else curr
+            }
+
+            state.copy(
+                likedTrackKeys = updatedKeys,
+                songs = updatedSongs,
+                currentAudioTrack = updatedTrack
+            )
+        }
+    }
+
+    fun downloadTrack(trackId: String) {
+        val state = _uiState.value
+        val trackTitle = state.songs.find { it.id == trackId }?.title
+            ?: state.currentAudioTrack?.takeIf { it.id == trackId }?.title
+            ?: "Track"
+
+        downloadJob?.cancel()
+        downloadJob = viewModelScope.launch {
+            _uiState.update { it.copy(downloadingTrackId = trackId, downloadProgress = 15, downloadToast = "Starting download...") }
+            delay(400)
+            _uiState.update { it.copy(downloadProgress = 45) }
+            delay(400)
+            _uiState.update { it.copy(downloadProgress = 85) }
+            delay(350)
+            _uiState.update { it.copy(downloadProgress = 100) }
+            delay(300)
+            _uiState.update {
+                it.copy(
+                    downloadingTrackId = null,
+                    downloadProgress = 0,
+                    downloadedTrackIds = it.downloadedTrackIds + trackId,
+                    downloadToast = "Downloaded \"$trackTitle\""
+                )
+            }
+            delay(3000)
+            _uiState.update { it.copy(downloadToast = null) }
+        }
+    }
+
+    fun dismissDownloadToast() {
+        _uiState.update { it.copy(downloadToast = null) }
+    }
+
+    fun openSongDiscussions(track: AudioTrack) {
+        _uiState.update { it.copy(activeDiscussionTrack = track) }
+    }
+
+    fun closeSongDiscussions() {
+        _uiState.update { it.copy(activeDiscussionTrack = null) }
+    }
+
+    fun addSongComment(songId: String, text: String) {
+        if (text.isBlank()) return
+        val currentUser = _uiState.value.currentUser
+        val newComment = SongComment(
+            id = System.currentTimeMillis(),
+            songId = songId,
+            userId = currentUser.id,
+            userName = currentUser.name,
+            userAvatar = currentUser.profileImageUrl,
+            text = text.trim(),
+            createdAt = System.currentTimeMillis()
+        )
+        _uiState.update { state ->
+            val existing = state.songComments[songId] ?: emptyList()
+            state.copy(
+                songComments = state.songComments + (songId to (listOf(newComment) + existing))
+            )
+        }
+    }
+
+    fun toggleHideSongComment(songId: String, commentId: Long) {
+        _uiState.update { state ->
+            val list = state.songComments[songId] ?: emptyList()
+            val updated = list.map { c ->
+                if (c.id == commentId) c.copy(isHidden = !c.isHidden) else c
+            }
+            state.copy(songComments = state.songComments + (songId to updated))
+        }
+    }
+
+    fun deleteSongComment(songId: String, commentId: Long) {
+        _uiState.update { state ->
+            val list = state.songComments[songId] ?: emptyList()
+            state.copy(songComments = state.songComments + (songId to list.filter { it.id != commentId }))
+        }
+    }
+
+    fun openShareTrack(track: AudioTrack) {
+        _uiState.update { it.copy(activeShareTrack = track) }
+    }
+
+    fun closeShareTrack() {
+        _uiState.update { it.copy(activeShareTrack = null) }
+    }
+
+    fun uploadSong(
+        title: String,
+        artist: String,
+        genre: String,
+        album: String,
+        coverUrl: String,
+        audioUrl: String,
+        duration: String = "3:15"
+    ) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(songUploadProgress = 20, songUploadStatus = "Uploading audio...") }
+            delay(400)
+            _uiState.update { it.copy(songUploadProgress = 60, songUploadStatus = "Compressing artwork...") }
+            delay(400)
+            _uiState.update { it.copy(songUploadProgress = 90, songUploadStatus = "Publishing to catalog...") }
+            delay(400)
+
+            val newSong = Song(
+                id = "song_${System.currentTimeMillis()}",
+                title = title.ifBlank { "Untitled Track" },
+                artist = artist.ifBlank { _uiState.value.currentUser.name },
+                cover = coverUrl.ifBlank { "https://media.unera.social/task_01kftb3024ed7bm84gy6j485fh_1769336848_img_0.webp" },
+                audioUrl = audioUrl.ifBlank { "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+                duration = duration,
+                durationSeconds = 195,
+                uploaderId = _uiState.value.currentUser.id,
+                uploadDate = "Just now",
+                genre = genre.ifBlank { "Afrobeats" },
+                album = album.ifBlank { "Single" },
+                isVerified = _uiState.value.currentUser.isVerified,
+                stats = SongStats(plays = 1L, likes = 0L)
+            )
+
+            _uiState.update { state ->
+                state.copy(
+                    songs = listOf(newSong) + state.songs,
+                    songUploadProgress = 100,
+                    songUploadStatus = "Track published!"
+                )
+            }
+            delay(1200)
+            _uiState.update { it.copy(songUploadProgress = null, songUploadStatus = null) }
+        }
+    }
+
+    fun deleteUploadedSong(songId: String) {
+        _uiState.update { state ->
+            val updated = state.songs.filter { it.id != songId }
+            state.copy(
+                songs = updated,
+                currentAudioTrack = if (state.currentAudioTrack?.id == songId) null else state.currentAudioTrack
+            )
+        }
     }
 }

@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -18,7 +19,10 @@ import com.unera.social.model.Screen
 import com.unera.social.ui.FeatheredViewModel
 import com.unera.social.ui.components.FeatheredBottomNav
 import com.unera.social.ui.components.FeatheredTopBar
+import com.unera.social.ui.components.GlobalAudioPlayer
 import com.unera.social.ui.components.MenuOverlay
+import com.unera.social.ui.components.MusicCommentsSheet
+import com.unera.social.ui.components.MusicShareSheet
 import com.unera.social.ui.screens.*
 import com.unera.social.ui.theme.FeatheredTheme
 
@@ -66,7 +70,8 @@ fun FeatheredApp(
                 Screen.MEMORIES,
                 Screen.SAVED_POSTS,
                 Screen.STORY_FEED,
-                Screen.REELS
+                Screen.REELS,
+                Screen.MUSIC
             )
             if (!uiState.showNotificationsOverlay && uiState.activeConversationId == null && !hasCustomTopBar) {
                 FeatheredTopBar(
@@ -81,11 +86,50 @@ fun FeatheredApp(
         },
         bottomBar = {
             if (!uiState.showNotificationsOverlay && uiState.activeConversationId == null) {
-                FeatheredBottomNav(
-                    currentScreen = uiState.currentScreen,
-                    unreadMessagesCount = unreadMessagesCount,
-                    onTabSelected = { viewModel.setScreen(it) }
-                )
+                Column {
+                    if (uiState.currentAudioTrack != null) {
+                        GlobalAudioPlayer(
+                            currentTrack = uiState.currentAudioTrack,
+                            isPlaying = uiState.isPlayingAudio,
+                            positionSeconds = uiState.audioPositionSeconds,
+                            durationSeconds = uiState.audioDurationSeconds,
+                            isExpanded = uiState.isPlayerExpanded,
+                            isLiked = "music:${uiState.currentAudioTrack?.id}" in uiState.likedTrackKeys,
+                            isShuffle = uiState.isShuffleEnabled,
+                            isRepeat = uiState.isRepeatEnabled,
+                            volume = uiState.audioVolume,
+                            isDownloading = uiState.downloadingTrackId == uiState.currentAudioTrack?.id,
+                            downloadProgress = uiState.downloadProgress,
+                            downloadToast = uiState.downloadToast,
+                            uploaderProfile = uiState.users.find { it.id == uiState.currentAudioTrack?.uploaderId },
+                            totalPlays = uiState.trackPlays["music:${uiState.currentAudioTrack?.id}"] ?: 0L,
+                            onTogglePlay = { viewModel.togglePlayAudio() },
+                            onNext = { viewModel.nextTrack() },
+                            onPrevious = { viewModel.prevTrack() },
+                            onSeek = { viewModel.seekAudio(it) },
+                            onStop = { viewModel.stopAudio() },
+                            onClose = { viewModel.closeAudioPlayer() },
+                            onExpand = { viewModel.setPlayerExpanded(true) },
+                            onCollapse = { viewModel.setPlayerExpanded(false) },
+                            onToggleLike = { uiState.currentAudioTrack?.let { viewModel.toggleLikeTrack(it.id) } },
+                            onToggleShuffle = { viewModel.toggleShuffle() },
+                            onToggleRepeat = { viewModel.toggleRepeat() },
+                            onVolumeChange = { viewModel.setAudioVolume(it) },
+                            onDownload = { uiState.currentAudioTrack?.let { viewModel.downloadTrack(it.id) } },
+                            onOpenDiscussions = { uiState.currentAudioTrack?.let { viewModel.openSongDiscussions(it) } },
+                            onOpenShare = { uiState.currentAudioTrack?.let { viewModel.openShareTrack(it) } },
+                            onArtistClick = { artistId ->
+                                val targetUser = uiState.users.find { it.id == artistId }
+                                if (targetUser != null) viewModel.openUserProfile(targetUser)
+                            }
+                        )
+                    }
+                    FeatheredBottomNav(
+                        currentScreen = uiState.currentScreen,
+                        unreadMessagesCount = unreadMessagesCount,
+                        onTabSelected = { viewModel.setScreen(it) }
+                    )
+                }
             }
         }
     ) { innerPadding ->
@@ -94,7 +138,18 @@ fun FeatheredApp(
         if (uiState.showNotificationsOverlay) {
             NotificationsScreen(
                 notifications = uiState.notifications,
+                users = uiState.users,
+                currentUser = uiState.currentUser,
                 onBack = { viewModel.setShowNotificationsOverlay(false) },
+                onProfileClick = { userId ->
+                    viewModel.setShowNotificationsOverlay(false)
+                    viewModel.openUserProfileById(userId)
+                },
+                onMarkAllAsRead = { viewModel.markNotificationsAsRead() },
+                onDeleteNotification = { notifId -> viewModel.deleteNotification(notifId) },
+                onToggleRead = { notifId, isRead -> viewModel.markNotificationRead(notifId, isRead) },
+                onAcceptGroupInvite = { notifId, groupId -> viewModel.acceptGroupInvite(notifId, groupId) },
+                onDeclineGroupInvite = { notifId, groupId -> viewModel.declineGroupInvite(notifId, groupId) },
                 modifier = screenModifier
             )
         } else {
@@ -152,6 +207,10 @@ fun FeatheredApp(
                         onToggleInterested = { viewModel.toggleInterestedEvent(it) },
                         onToggleGoing = { viewModel.toggleGoingEvent(it) },
                         onOpenCreateEvent = { viewModel.setShowCreateEventDialog(true) },
+                        onProfileClick = { userId ->
+                            val target = uiState.users.find { it.id == userId }
+                            if (target != null) viewModel.openUserProfile(target)
+                        },
                         modifier = screenModifier
                     )
                 }
@@ -285,6 +344,33 @@ fun FeatheredApp(
                         modifier = screenModifier
                     )
                 }
+                Screen.MUSIC -> {
+                    MusicSystemScreen(
+                        currentUser = uiState.currentUser,
+                        users = uiState.users,
+                        songs = uiState.songs,
+                        currentTrack = uiState.currentAudioTrack,
+                        isPlaying = uiState.isPlayingAudio,
+                        likedTrackKeys = uiState.likedTrackKeys,
+                        myTotalPlays = uiState.myTotalPlays,
+                        trackPlays = uiState.trackPlays,
+                        uploadProgress = uiState.songUploadProgress,
+                        uploadStatus = uiState.songUploadStatus,
+                        onPlayTrack = { viewModel.playTrack(it) },
+                        onTogglePlay = { viewModel.togglePlayAudio() },
+                        onToggleLikeTrack = { viewModel.toggleLikeTrack(it) },
+                        onUploadSong = { title, artist, genre, album, cover, audio ->
+                            viewModel.uploadSong(title, artist, genre, album, cover, audio)
+                        },
+                        onDeleteUploadedSong = { viewModel.deleteUploadedSong(it) },
+                        onProfileClick = { userId ->
+                            val target = uiState.users.find { it.id == userId }
+                            if (target != null) viewModel.openUserProfile(target)
+                        },
+                        onBack = { viewModel.setScreen(Screen.FEED) },
+                        modifier = screenModifier
+                    )
+                }
             }
         }
     }
@@ -341,10 +427,21 @@ fun FeatheredApp(
     }
 
     if (uiState.showCreateEventDialog) {
-        CreateEventDialog(
-            onDismiss = { viewModel.setShowCreateEventDialog(false) },
-            onSubmit = { title, date, location, description, imageUrl ->
-                viewModel.createEvent(title, date, location, description, imageUrl)
+        CreateEventModal(
+            currentUser = uiState.currentUser,
+            onClose = { viewModel.setShowCreateEventDialog(false) },
+            onCreate = { title, desc, date, time, location, visibility, coverUrl, gId, gName ->
+                viewModel.createEvent(
+                    title = title,
+                    date = if (time.isNotBlank()) "$date • $time" else date,
+                    location = location,
+                    description = desc,
+                    imageUrl = coverUrl,
+                    time = time,
+                    visibility = visibility,
+                    groupId = gId,
+                    groupName = gName
+                )
             }
         )
     }
@@ -381,7 +478,7 @@ fun FeatheredApp(
                     "memories" -> viewModel.setScreen(Screen.MEMORIES)
                     "saved-posts", "saved" -> viewModel.setScreen(Screen.SAVED_POSTS)
                     "story-feed" -> viewModel.setScreen(Screen.STORY_FEED)
-                    "music" -> viewModel.setScreen(Screen.REELS)
+                    "music" -> viewModel.setScreen(Screen.MUSIC)
                     "groups" -> viewModel.setScreen(Screen.DISCOVER_PEOPLE)
                     "tools" -> viewModel.setShowSearchDialog(true)
                     "ads" -> viewModel.setScreen(Screen.MARKETPLACE)
@@ -454,4 +551,34 @@ fun FeatheredApp(
             }
         )
     }
+
+    // Music Discussions Bottom Sheet Modal
+    if (uiState.activeDiscussionTrack != null) {
+        MusicCommentsSheet(
+            track = uiState.activeDiscussionTrack,
+            currentUser = uiState.currentUser,
+            comments = uiState.songComments[uiState.activeDiscussionTrack!!.id] ?: emptyList(),
+            onClose = { viewModel.closeSongDiscussions() },
+            onAddComment = { text -> viewModel.addSongComment(uiState.activeDiscussionTrack!!.id, text) },
+            onToggleHide = { commentId -> viewModel.toggleHideSongComment(uiState.activeDiscussionTrack!!.id, commentId) },
+            onDeleteComment = { commentId -> viewModel.deleteSongComment(uiState.activeDiscussionTrack!!.id, commentId) },
+            onProfileClick = { userId ->
+                viewModel.closeSongDiscussions()
+                val target = uiState.users.find { it.id == userId }
+                if (target != null) viewModel.openUserProfile(target)
+            }
+        )
+    }
+
+    // Music Share Bottom Sheet Modal
+    if (uiState.activeShareTrack != null) {
+        MusicShareSheet(
+            track = uiState.activeShareTrack,
+            onClose = { viewModel.closeShareTrack() },
+            onShareDestination = { _ ->
+                viewModel.closeShareTrack()
+            }
+        )
+    }
 }
+

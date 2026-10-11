@@ -11,7 +11,8 @@ enum class Screen {
     BIRTHDAYS,
     MEMORIES,
     SAVED_POSTS,
-    STORY_FEED
+    STORY_FEED,
+    MUSIC
 }
 
 enum class NotificationType {
@@ -19,8 +20,24 @@ enum class NotificationType {
     COMMENT,
     FOLLOW,
     EVENT,
-    MESSAGE
+    MESSAGE,
+    REACTION,
+    SHARE,
+    GROUP_INVITE,
+    BIRTHDAY,
+    MENTION,
+    MUSIC
 }
+
+data class Group(
+    val id: Long,
+    val name: String,
+    val description: String = "",
+    val coverImageUrl: String = "",
+    val membersCount: Int = 0,
+    val isMember: Boolean = false,
+    val isPrivate: Boolean = false
+)
 
 data class User(
     val id: Long,
@@ -167,7 +184,12 @@ data class Event(
     val goingCount: Int = 0,
     val isInterested: Boolean = false,
     val isGoing: Boolean = false,
-    val organizer: User
+    val organizer: User,
+    val time: String = "",
+    val visibility: String = "worldwide",
+    val groupId: Long? = null,
+    val groupName: String? = null,
+    val createdAt: String = "Just now"
 )
 
 data class ChatMessage(
@@ -191,7 +213,77 @@ data class Notification(
     val id: String,
     val user: User,
     val content: String,
-    val timeAgo: String,
-    val type: NotificationType,
-    val isRead: Boolean = false
+    val timeAgo: String = "Just now",
+    val type: NotificationType = NotificationType.LIKE,
+    val isRead: Boolean = false,
+    val rawType: String = "",
+    val reactionType: String = "",
+    val entityType: String = "",
+    val entityId: Long? = null,
+    val groupId: Long? = null,
+    val groupName: String? = null,
+    val inviteId: Long? = null,
+    val previewText: String? = null,
+    val previewImage: String? = null,
+    val actorsCount: Int = 1,
+    val actors: List<User> = emptyList(),
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+data class SongStats(
+    val plays: Long = 0,
+    val likes: Long = 0,
+    val shares: Long = 0,
+    val downloads: Long = 0,
+    val reelsUse: Long = 0
+)
+
+data class Song(
+    val id: String,
+    val title: String,
+    val artist: String,
+    val cover: String = "https://media.unera.social/task_01kftb3024ed7bm84gy6j485fh_1769336848_img_0.webp",
+    val audioUrl: String = "",
+    val duration: String = "3:24",
+    val durationSeconds: Int = 204,
+    val uploaderId: Long = 1,
+    val uploadDate: String = "2026-03-15T12:00:00Z",
+    val genre: String = "Afrobeats",
+    val album: String = "Single",
+    val isVerified: Boolean = false,
+    val stats: SongStats = SongStats()
+)
+
+data class AudioTrack(
+    val id: String,
+    val title: String,
+    val artist: String,
+    val duration: Int = 180,
+    val url: String = "",
+    val uploaderId: Long = 1,
+    val cover: String = "https://media.unera.social/task_01kftb3024ed7bm84gy6j485fh_1769336848_img_0.webp",
+    val type: String = "music",
+    val isVerified: Boolean = false,
+    val likesCount: Long = 0
+)
+
+data class Album(
+    val name: String,
+    val songs: List<Song>,
+    val cover: String,
+    val artist: String,
+    val totalTracks: Int
+)
+
+data class SongComment(
+    val id: Long,
+    val songId: String,
+    val userId: Long,
+    val userName: String,
+    val userAvatar: String,
+    val text: String,
+    val createdAt: Long = System.currentTimeMillis(),
+    val likesCount: Long = 0,
+    val isHidden: Boolean = false,
+    val hiddenBy: Long? = null
 )
