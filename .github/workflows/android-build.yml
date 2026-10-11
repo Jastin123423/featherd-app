@@ -70,7 +70,6 @@ jobs:
             echo "No keystore secret provided. Builds will proceed with debug signing."
             echo "keystore_configured=false" >> $GITHUB_OUTPUT
           fi
-
       - name: ⚙️ Grant execute permission for gradlew
         run: chmod +x android/gradlew
 
@@ -82,7 +81,6 @@ jobs:
             -PversionCode=${{ inputs.version_code || '1' }} \
             -PversionName=${{ inputs.version_name || '1.0.0' }} \
             --stacktrace
-
       - name: 📦 Build Release APK
         if: ${{ inputs.build_type == 'all' || inputs.build_type == 'release' || github.event_name == 'push' }}
         continue-on-error: true
@@ -92,7 +90,6 @@ jobs:
             -PversionCode=${{ inputs.version_code || '1' }} \
             -PversionName=${{ inputs.version_name || '1.0.0' }} \
             --stacktrace
-
       - name: 🌐 Build Google Play Bundle (AAB)
         if: ${{ inputs.build_type == 'all' || inputs.build_type == 'bundle' || github.ref_type == 'tag' }}
         continue-on-error: true
@@ -102,7 +99,6 @@ jobs:
             -PversionCode=${{ inputs.version_code || '1' }} \
             -PversionName=${{ inputs.version_name || '1.0.0' }} \
             --stacktrace
-
       - name: 📤 Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
